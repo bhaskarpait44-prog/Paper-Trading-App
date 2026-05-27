@@ -39,7 +39,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
         });
       }
     } catch (e) {
-      print('Fetch portfolio error: $e');
+      debugPrint('Fetch portfolio error: $e');
       if (mounted) setState(() => _isLoading = false);
     }
   }

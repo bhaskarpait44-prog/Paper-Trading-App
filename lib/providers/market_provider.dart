@@ -3,7 +3,7 @@ import '../services/websocket_service.dart';
 
 class MarketProvider with ChangeNotifier {
   final WebSocketService _wsService = WebSocketService();
-  Map<String, dynamic> _prices = {};
+  final Map<String, dynamic> _prices = {};
   bool _isMarketOpen = false;
 
   Map<String, dynamic> get prices => _prices;

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
 import '../../providers/market_provider.dart';
-import '../../providers/auth_provider.dart';
 import '../../core/constants.dart';
 import '../../services/auth_service.dart';
 

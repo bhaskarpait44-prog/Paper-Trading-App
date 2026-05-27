@@ -40,7 +40,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
         });
       }
     } catch (e) {
-      print('Fetch orders error: $e');
+      debugPrint('Fetch orders error: $e');
       if (mounted) setState(() => _isLoading = false);
     }
   }

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import '../core/constants.dart';
 
@@ -13,10 +14,10 @@ class WebSocketService {
         onData!(jsonDecode(message));
       }
     }, onError: (err) {
-      print('WS Error: $err');
+      debugPrint('WS Error: $err');
       // Reconnect logic here
     }, onDone: () {
-      print('WS Closed');
+      debugPrint('WS Closed');
     });
   }
 

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../core/constants.dart';
 
@@ -19,7 +20,7 @@ class AuthService {
         return response.data;
       }
     } catch (e) {
-      print('Login error: $e');
+      debugPrint('Login error: $e');
     }
     return null;
   }
@@ -38,7 +39,7 @@ class AuthService {
         return response.data;
       }
     } catch (e) {
-      print('Register error: $e');
+      debugPrint('Register error: $e');
     }
     return null;
   }
@@ -48,7 +49,7 @@ class AuthService {
     try {
       await _dio.post('/auth/logout', data: {'refreshToken': refreshToken});
     } catch (e) {
-      print('Logout error: $e');
+      debugPrint('Logout error: $e');
     }
     await _storage.delete(key: 'accessToken');
     await _storage.delete(key: 'refreshToken');

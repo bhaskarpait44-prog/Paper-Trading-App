@@ -40,7 +40,7 @@ class _PnlScreenState extends State<PnlScreen> {
         });
       }
     } catch (e) {
-      print('Fetch pnl summary error: $e');
+      debugPrint('Fetch pnl summary error: $e');
       if (mounted) setState(() => _isLoading = false);
     }
   }
