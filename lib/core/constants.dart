@@ -1,6 +1,6 @@
 class AppConstants {
-  static const String baseUrl = 'http://localhost:5000/api';
-  static const String wsUrl = 'ws://localhost:5000';
+  static const String baseUrl = 'http://10.75.163.32:5000/api';
+  static const String wsUrl = 'ws://10.75.163.32:5000';
 
   static const Map<String, int> lotSizes = {
     '^NSEI': 25,
