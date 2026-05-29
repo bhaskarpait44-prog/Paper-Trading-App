@@ -4,6 +4,7 @@ import 'providers/auth_provider.dart';
 import 'providers/market_provider.dart';
 import 'providers/watchlist_provider.dart';
 import 'providers/options_provider.dart';
+import 'providers/portfolio_provider.dart';
 import 'screens/auth/login_screen.dart';
 
 void main() {

@@ -8,7 +8,6 @@ class PortfolioProvider with ChangeNotifier {
   Map<String, dynamic>? _summary;
   List<dynamic> _equityHoldings = [];
   List<dynamic> _futuresPositions = [];
-  List<dynamic> _optionsPositions = [];
   bool _isLoading = false;
 
   Map<String, dynamic>? get summary => _summary;
@@ -30,12 +29,10 @@ class PortfolioProvider with ChangeNotifier {
       final summaryRes = await dio.get('/portfolio/summary');
       final equityRes = await dio.get('/equity/holdings');
       final futuresRes = await dio.get('/futures/positions');
-      final optionsRes = await dio.get('/options/positions');
 
       _summary = summaryRes.data;
       _equityHoldings = equityRes.data;
       _futuresPositions = futuresRes.data;
-      _optionsPositions = optionsRes.data;
       
     } catch (e) {
       debugPrint('PortfolioProvider error: $e');
