@@ -29,7 +29,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registration failed')),
+        const SnackBar(
+          content: Text('Registration failed. Check if email exists or check console for network errors.'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }

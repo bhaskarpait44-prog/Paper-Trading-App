@@ -38,6 +38,10 @@ class AuthService {
         await _storage.write(key: 'refreshToken', value: response.data['refreshToken']);
         return response.data;
       }
+    } on DioException catch (e) {
+      debugPrint('Register error status: ${e.response?.statusCode}');
+      debugPrint('Register error message: ${e.response?.data}');
+      debugPrint('Register error: ${e.message}');
     } catch (e) {
       debugPrint('Register error: $e');
     }
