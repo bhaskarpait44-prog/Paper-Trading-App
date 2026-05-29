@@ -5,16 +5,16 @@ import '../../providers/market_provider.dart';
 import '../../core/constants.dart';
 import '../../services/auth_service.dart';
 
-class EquityTradeScreen extends StatefulWidget {
+class FuturesTradeScreen extends StatefulWidget {
   final String symbol;
-  const EquityTradeScreen({super.key, required this.symbol});
+  const FuturesTradeScreen({super.key, required this.symbol});
 
   @override
-  State<EquityTradeScreen> createState() => _EquityTradeScreenState();
+  State<FuturesTradeScreen> createState() => _FuturesTradeScreenState();
 }
 
-class _EquityTradeScreenState extends State<EquityTradeScreen> {
-  final _quantityController = TextEditingController();
+class _FuturesTradeScreenState extends State<FuturesTradeScreen> {
+  final _lotsController = TextEditingController();
   bool _isLoading = false;
 
   void _executeTrade(String type) async {
@@ -28,10 +28,12 @@ class _EquityTradeScreenState extends State<EquityTradeScreen> {
         headers: {'Authorization': 'Bearer $token'},
       ));
 
-      final endpoint = type == 'BUY' ? '/equity/buy' : '/equity/sell';
-      final response = await dio.post(endpoint, data: {
+      // Backend expects: symbol, expiryDate, orderType, lots
+      final response = await dio.post('/futures/trade', data: {
         'symbol': widget.symbol,
-        'quantity': int.parse(_quantityController.text),
+        'expiryDate': '2026-06-25', // Placeholder, real logic would use actual expiry
+        'orderType': type,
+        'lots': int.parse(_lotsController.text),
       });
 
       if (mounted) {
@@ -41,9 +43,10 @@ class _EquityTradeScreenState extends State<EquityTradeScreen> {
         Navigator.pop(context);
       }
     } catch (e) {
+      debugPrint('Futures trade error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Trade failed')),
+          const SnackBar(content: Text('Futures trade failed')),
         );
       }
     } finally {
@@ -54,7 +57,7 @@ class _EquityTradeScreenState extends State<EquityTradeScreen> {
   @override
   Widget build(BuildContext context) {
     final marketProvider = Provider.of<MarketProvider>(context);
-    final priceData = marketProvider.indexPrices[widget.symbol];
+    final priceData = marketProvider.futuresPrices[widget.symbol];
     final ltp = priceData?['ltp'] ?? 0.0;
 
     return Scaffold(
@@ -67,10 +70,13 @@ class _EquityTradeScreenState extends State<EquityTradeScreen> {
             Text('LTP: ₹$ltp', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 20),
             TextField(
-              controller: _quantityController,
-              decoration: const InputDecoration(labelText: 'Quantity'),
+              controller: _lotsController,
+              decoration: const InputDecoration(labelText: 'Number of Lots'),
               keyboardType: TextInputType.number,
             ),
+            const SizedBox(height: 10),
+            const Text('Note: Margin will be deducted from your virtual cash.', 
+              style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic)),
             const SizedBox(height: 40),
             if (_isLoading)
               const Center(child: CircularProgressIndicator())
@@ -81,7 +87,7 @@ class _EquityTradeScreenState extends State<EquityTradeScreen> {
                     child: ElevatedButton(
                       onPressed: () => _executeTrade('BUY'),
                       style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
-                      child: const Text('BUY'),
+                      child: const Text('BUY / LONG'),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -89,7 +95,7 @@ class _EquityTradeScreenState extends State<EquityTradeScreen> {
                     child: ElevatedButton(
                       onPressed: () => _executeTrade('SELL'),
                       style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
-                      child: const Text('SELL'),
+                      child: const Text('SELL / SHORT'),
                     ),
                   ),
                 ],

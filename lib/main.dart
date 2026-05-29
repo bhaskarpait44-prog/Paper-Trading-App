@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/market_provider.dart';
+import 'providers/watchlist_provider.dart';
+import 'providers/options_provider.dart';
 import 'screens/auth/login_screen.dart';
 
 void main() {
@@ -10,6 +12,9 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => MarketProvider()),
+        ChangeNotifierProvider(create: (_) => WatchlistProvider()),
+        ChangeNotifierProvider(create: (_) => OptionsProvider()),
+        ChangeNotifierProvider(create: (_) => PortfolioProvider()),
       ],
       child: const MyApp(),
     ),

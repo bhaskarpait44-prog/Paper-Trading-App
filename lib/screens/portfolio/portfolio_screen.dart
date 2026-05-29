@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
-import '../../core/constants.dart';
-import '../../services/auth_service.dart';
+import 'package:provider/provider.dart';
+import '../../providers/portfolio_provider.dart';
+import '../../providers/market_provider.dart';
 
 class PortfolioScreen extends StatefulWidget {
   const PortfolioScreen({super.key});
@@ -11,60 +11,39 @@ class PortfolioScreen extends StatefulWidget {
 }
 
 class _PortfolioScreenState extends State<PortfolioScreen> {
-  Map<String, dynamic>? _summary;
-  bool _isLoading = true;
-
   @override
   void initState() {
     super.initState();
-    _fetchPortfolio();
-  }
-
-  Future<void> _fetchPortfolio() async {
-    setState(() => _isLoading = true);
-    final authService = AuthService();
-    final token = await authService.getToken();
-
-    try {
-      final dio = Dio(BaseOptions(
-        baseUrl: AppConstants.baseUrl,
-        headers: {'Authorization': 'Bearer $token'},
-      ));
-
-      final response = await dio.get('/portfolio/summary');
-      if (mounted) {
-        setState(() {
-          _summary = response.data;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      debugPrint('Fetch portfolio error: $e');
-      if (mounted) setState(() => _isLoading = false);
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<PortfolioProvider>(context, listen: false).fetchPortfolio();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final portfolioProvider = Provider.of<PortfolioProvider>(context);
+    final marketProvider = Provider.of<MarketProvider>(context);
+    final liveStats = portfolioProvider.calculateLivePnl(marketProvider);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Portfolio')),
-      body: _isLoading
+      body: portfolioProvider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
-              onRefresh: _fetchPortfolio,
+              onRefresh: portfolioProvider.fetchPortfolio,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSummaryCard(),
+                    _buildSummaryCard(portfolioProvider, liveStats),
                     const SizedBox(height: 20),
                     const Text('Segment Breakdown', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 10),
-                    _buildSegmentRow('Equity', _summary?['equity']),
-                    _buildSegmentRow('Futures', _summary?['futures']),
-                    _buildSegmentRow('Options', _summary?['options']),
+                    _buildSegmentRow('Equity', portfolioProvider.summary?['equity'], liveStats['equityValue']),
+                    _buildSegmentRow('Futures', portfolioProvider.summary?['futures'], null),
+                    _buildSegmentRow('Options', portfolioProvider.summary?['options'], null),
                   ],
                 ),
               ),
@@ -72,7 +51,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
     );
   }
 
-  Widget _buildSummaryCard() {
+  Widget _buildSummaryCard(PortfolioProvider provider, Map<String, double> liveStats) {
     return Card(
       elevation: 4,
       color: Colors.blue.shade50,
@@ -81,14 +60,14 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
         child: Column(
           children: [
             const Text('Total Portfolio Value', style: TextStyle(fontSize: 16)),
-            Text('₹${(_summary?['totalPortfolioValue'] ?? 0.0).toStringAsFixed(2)}',
+            Text('₹${liveStats['totalValue']?.toStringAsFixed(2)}',
                 style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.blue)),
             const Divider(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text('Available Cash:'),
-                Text('₹${(_summary?['virtual_cash'] ?? 0.0).toStringAsFixed(2)}',
+                Text('₹${(provider.summary?['virtual_cash'] ?? 0.0).toStringAsFixed(2)}',
                     style: const TextStyle(fontWeight: FontWeight.bold)),
               ],
             ),
@@ -98,13 +77,13 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
     );
   }
 
-  Widget _buildSegmentRow(String title, Map<String, dynamic>? data) {
+  Widget _buildSegmentRow(String title, Map<String, dynamic>? data, double? liveValue) {
     if (data == null) return const SizedBox();
     return ListTile(
       title: Text(title),
-      subtitle: title == 'Equity' 
-        ? Text('Value: ₹${(data['value'] ?? 0.0).toStringAsFixed(2)}')
-        : null,
+      subtitle: liveValue != null 
+        ? Text('Value: ₹${liveValue.toStringAsFixed(2)}')
+        : (data['value'] != null ? Text('Value: ₹${(data['value'] ?? 0.0).toStringAsFixed(2)}') : null),
       trailing: Text(
         '${(data['unrealizedPnl'] ?? 0.0) >= 0 ? "+" : ""}₹${(data['unrealizedPnl'] ?? 0.0).toStringAsFixed(2)}',
         style: TextStyle(
