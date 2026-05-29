@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import '../services/auth_service.dart';
+import '../core/constants.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
   Map<String, dynamic>? _user;
   bool _isLoading = false;
+  bool _isFyersConnected = false;
 
   Map<String, dynamic>? get user => _user;
   bool get isLoading => _isLoading;
   bool get isAuthenticated => _user != null;
+  bool get isFyersConnected => _isFyersConnected;
 
   Future<bool> login(String email, String password) async {
     _isLoading = true;
@@ -17,6 +21,7 @@ class AuthProvider with ChangeNotifier {
     _isLoading = false;
     if (result != null) {
       _user = result['user'];
+      _isFyersConnected = _user?['isFyersConnected'] ?? false;
       notifyListeners();
       return true;
     }
@@ -34,6 +39,7 @@ class AuthProvider with ChangeNotifier {
       if (result != null) {
         debugPrint('AuthProvider: Registration successful for: $email');
         _user = result['user'];
+        _isFyersConnected = _user?['isFyersConnected'] ?? false;
         notifyListeners();
         return true;
       } else {
@@ -45,6 +51,27 @@ class AuthProvider with ChangeNotifier {
     }
     notifyListeners();
     return false;
+  }
+
+  Future<String?> getFyersLoginUrl() async {
+    final token = await _authService.getToken();
+    final dio = Dio(BaseOptions(
+      baseUrl: AppConstants.baseUrl,
+      headers: {'Authorization': 'Bearer $token'},
+    ));
+
+    try {
+      final response = await dio.get('/auth/fyers/login');
+      return response.data['loginUrl'];
+    } catch (e) {
+      debugPrint('Error getting Fyers login URL: $e');
+      return null;
+    }
+  }
+
+  void setFyersConnected(bool connected) {
+    _isFyersConnected = connected;
+    notifyListeners();
   }
 
   Future<void> logout() async {
